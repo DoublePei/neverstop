@@ -24,7 +24,6 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <lombok.version>1.18.6</lombok.version>
         <zkclient.version>0.10</zkclient.version>
-        <kepler.version>0.0.1-SNAPSHOT</kepler.version>
         <junit.version>4.12</junit.version>
         <jersey.version>2.25.1</jersey.version>
         <jetty-jsp.version>9.2.15.v20160210</jetty-jsp.version>
@@ -49,6 +48,26 @@
     </properties>
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>com.ns.net</groupId>
+                <artifactId>master</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>com.ns.net</groupId>
+                <artifactId>work</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>com.ns.net</groupId>
+                <artifactId>common</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>com.ns.net</groupId>
+                <artifactId>alert</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
             <dependency>
                 <groupId>org.zeroturnaround</groupId>
                 <artifactId>zt-exec</artifactId>
