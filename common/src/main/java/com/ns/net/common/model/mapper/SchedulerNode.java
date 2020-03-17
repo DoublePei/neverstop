@@ -17,7 +17,6 @@ public class SchedulerNode {
     private Long id;
     private String nodeHost;
     private Integer nodeRpcPort;
-    private Integer nodeType;
     private Integer nodeState;
     private String nodeGroups;
     private Double cpuUsage;
@@ -30,7 +29,6 @@ public class SchedulerNode {
 
     public SchedulerNode updateNotNull(SchedulerNode schedulerNode) {
         if (schedulerNode.getId() != null) this.id = schedulerNode.getId();
-        if (schedulerNode.getNodeType() != null) this.nodeType = schedulerNode.getNodeType();
         if (schedulerNode.getNodeHost() != null) this.nodeHost = schedulerNode.getNodeHost();
         if (schedulerNode.getNodeRpcPort() != null) this.nodeRpcPort = schedulerNode.getNodeRpcPort();
         if (schedulerNode.getNodeGroups() != null) this.nodeGroups = schedulerNode.getNodeGroups();

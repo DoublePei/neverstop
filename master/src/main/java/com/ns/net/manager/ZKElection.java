@@ -4,6 +4,7 @@ import com.ns.net.common.model.ZkMaster;
 import com.ns.net.common.util.CuratorUtils;
 import com.ns.net.common.util.MetricsUtils;
 import com.ns.net.manager.strategy.LeaderElectable;
+import com.ns.net.manager.strategy.Service;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.leader.LeaderLatch;
@@ -11,18 +12,19 @@ import org.apache.curator.framework.recipes.leader.LeaderLatchListener;
 import org.apache.curator.framework.state.ConnectionState;
 import org.apache.curator.framework.state.ConnectionStateListener;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.Lifecycle;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.io.IOException;
 
+import static com.google.common.base.Charsets.UTF_8;
 import static com.ns.net.common.constants.Constant.MASTER_GROUP;
+import static org.apache.curator.framework.imps.CuratorFrameworkState.STARTED;
 import static org.apache.curator.framework.imps.CuratorFrameworkState.STOPPED;
 
 @Slf4j
 @Component
-public class ZKElection implements LeaderLatchListener, Lifecycle, ConnectionStateListener {
+public class ZKElection implements LeaderLatchListener, Service, ConnectionStateListener {
 
     @Resource
     private CuratorFramework framework;
@@ -40,7 +42,9 @@ public class ZKElection implements LeaderLatchListener, Lifecycle, ConnectionSta
     private int rpc_port = 9090;
 
     @Override
-    public void start() {
+    public void start() throws InterruptedException {
+        framework.getZookeeperClient().blockUntilConnectedOrTimedOut();
+
         framework.getConnectionStateListenable()
                 .addListener(this);
         try {
@@ -65,7 +69,7 @@ public class ZKElection implements LeaderLatchListener, Lifecycle, ConnectionSta
             }
             ZkMaster zkMaster = new ZkMaster(MetricsUtils.getHostIpAddress(), rpc_port, http_port);
             try {
-                framework.setData().forPath(MASTER_GROUP, zkMaster.toString().getBytes("UTF-8"));
+                framework.setData().forPath(MASTER_GROUP, zkMaster.toString().getBytes(UTF_8));
             } catch (Exception e) {
                 log.error("set data error");
             }
@@ -107,23 +111,19 @@ public class ZKElection implements LeaderLatchListener, Lifecycle, ConnectionSta
     }
 
     @Override
-    public void stop() {
-        if (leaderLatch.getState() != LeaderLatch.State.CLOSED) {
-            try {
-                leaderLatch.close();
-            } catch (IOException e) {
-                log.error("close leaderLatch failed", e);
-            }
+    public void stop() throws IOException {
+        if (framework.getState() == STOPPED)
+            return;
+
+        if (leaderLatch.getState() == LeaderLatch.State.STARTED) {
+            leaderLatch.close();
         }
-        if (framework.getState() != STOPPED) {
+
+        if (framework.getState() == STARTED) {
             framework.close();
         }
     }
 
-    @Override
-    public boolean isRunning() {
-        return leaderLatch.hasLeadership();
-    }
 
     private enum LeadershipStatus {
         LEADER, NOT_LEADER;

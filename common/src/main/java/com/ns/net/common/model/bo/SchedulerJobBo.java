@@ -8,8 +8,7 @@ import com.ns.net.common.model.enums.JobType;
 import com.ns.net.common.model.mapper.SchedulerJob;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.quartz.JobKey;
-import org.quartz.TriggerKey;
+import org.quartz.*;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -19,6 +18,7 @@ import static com.google.common.base.Splitter.on;
 import static java.lang.Long.valueOf;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.BooleanUtils.toBoolean;
+import static org.quartz.CronScheduleBuilder.cronSchedule;
 
 @Data
 @Accessors(chain = true)
@@ -49,6 +49,15 @@ public class SchedulerJobBo implements Serializable {
     private String jobConfiguration;
     private String ossPath;
     private List<SchedulerJobBo> dependencies = new ArrayList<>();
+
+    public static SchedulerJobBo getBasicSchedulerJobBo() {
+        return new SchedulerJobBo()
+                .setJobName("test")
+                .setId(1L)
+                .setJobType(JobType.SHELL)
+                .setJobPriority(JobPriority.HIGH)
+                .setScheduleCron("* * * * * ?");
+    }
 
     /**
      * 实体类转Business类
@@ -101,5 +110,28 @@ public class SchedulerJobBo implements Serializable {
 
     private String quartzKey() {
         return this.jobName + "_" + this.id;
+    }
+
+    public CronTrigger getCronTrigger() {
+        return TriggerBuilder
+                .newTrigger()
+                .withIdentity(getTriggerKey())
+                .startNow()
+                .withSchedule(cronSchedule(this.scheduleCron).withMisfireHandlingInstructionIgnoreMisfires())
+                .build();
+
+    }
+
+    public JobDetail getJobDetail(Class<? extends Job> jobClass) {
+        return JobBuilder
+                .newJob(jobClass)
+                .withIdentity(getJobKey())
+                .usingJobData(getJobData()).build();
+    }
+
+    private JobDataMap getJobData() {
+        JobDataMap jobDataMap = new JobDataMap();
+        jobDataMap.put(DATA_KEY, this);
+        return jobDataMap;
     }
 }

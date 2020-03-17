@@ -2,6 +2,7 @@ package com.ns.net.manager;
 
 import com.ns.net.common.model.bo.SchedulerJobBo;
 import com.ns.net.config.QuartzConfig;
+import com.ns.net.manager.strategy.Service;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.Job;
 import org.quartz.Scheduler;
@@ -9,7 +10,6 @@ import org.quartz.SchedulerException;
 import org.quartz.TriggerKey;
 import org.quartz.impl.StdSchedulerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.Lifecycle;
 import org.springframework.stereotype.Component;
 
 /**
@@ -18,12 +18,13 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-public class QuartzScheduler implements Lifecycle {
+public class QuartzScheduler implements Service {
 
     /**
      * 启动时初始化一个scheduler
      */
     private Scheduler scheduler;
+
     @Autowired
     private QuartzConfig quartzConfig;
 
@@ -35,6 +36,31 @@ public class QuartzScheduler implements Lifecycle {
      */
     public void addJob(SchedulerJobBo job, Class<? extends Job> jobClass) {
         TriggerKey triggerKey = job.getTriggerKey();
+        try {
+            if (scheduler.checkExists(triggerKey)) {
+                scheduler.rescheduleJob(triggerKey, job.getCronTrigger());
+                return;
+            }
+            scheduler.scheduleJob(job.getJobDetail(jobClass), job.getCronTrigger());
+        } catch (SchedulerException e) {
+            throw new RuntimeException();
+        }
+    }
+
+    public void removeJob(SchedulerJobBo job) {
+        if (job == null) {
+            return;
+        }
+        TriggerKey triggerKey = job.getTriggerKey();
+        try {
+            if (scheduler.checkExists(triggerKey)) {
+                scheduler.pauseTrigger(triggerKey);
+                scheduler.unscheduleJob(triggerKey);
+                scheduler.deleteJob(job.getJobKey());
+            }
+        } catch (SchedulerException e) {
+            throw new RuntimeException();
+        }
     }
 
     @Override
@@ -61,8 +87,7 @@ public class QuartzScheduler implements Lifecycle {
         }
     }
 
-    @Override
-    public boolean isRunning() {
-        return true;
+    public void addJob(SchedulerJobBo basicSchedulerJobBo) {
+        addJob(basicSchedulerJobBo, QuartzJob.class);
     }
 }

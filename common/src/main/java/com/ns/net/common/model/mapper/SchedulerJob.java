@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static com.google.common.base.Splitter.on;
+import static java.util.Collections.emptyList;
 
 @Accessors(chain = true)
 @Data
@@ -25,11 +26,14 @@ public class SchedulerJob {
     private String ownerIds;
     private String ownerNames;
     private String alertUsers;
+    private String config;
+    private Integer jobCycle;
     /**
      * 不同类型以逗号分割
      */
     private String alertIds;
     private String scheduleCron;
+    private Long offsetMs;
     private Boolean isSelfDependent;
     private Integer maxRetryTimes;
     private Long retryInterval;
@@ -47,8 +51,12 @@ public class SchedulerJob {
 
     public List<String> getListOfWorkerGroups() {
         if (this.workerGroups == null)
-            return null;
+            return emptyList();
 
         return on(",").splitToList(this.getWorkerGroups());
+    }
+
+    public boolean jobIsDeleted() {
+        return this.jobReleaseState == -2;
     }
 }

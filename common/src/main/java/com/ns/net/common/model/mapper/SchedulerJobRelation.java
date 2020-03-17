@@ -3,13 +3,12 @@ package com.ns.net.common.model.mapper;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDateTime;
 
 @Data
 @Accessors(chain = true)
-@Table("t_kepler_scheduler_job_relation")
+//@Table("t_kepler_scheduler_job_relation")
 public class SchedulerJobRelation {
     @Id
     private Long id;

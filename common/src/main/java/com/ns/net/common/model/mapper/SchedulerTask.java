@@ -1,5 +1,6 @@
 package com.ns.net.common.model.mapper;
 
+import com.google.common.collect.ImmutableList;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.springframework.data.annotation.Id;
@@ -20,6 +21,7 @@ public class SchedulerTask {
     @Id
     private Long id;
     private Long jobId;
+    private String taskName;
     private Integer taskState;
     private String ossPath;
     private String workerGroups;
@@ -32,12 +34,17 @@ public class SchedulerTask {
     private Long retryInterval;
     private Long executionTimeout;
     private Long pid;
+    private Long dagId;
     private String applicationId;
     private Integer taskTriggerType;
     private Integer jobType;
     private Integer isSelfDependent;
     private Integer jobPriority;
     private String scheduleCron;
+    private Long offsetMs;
+    private Integer parallelism;
+    private String sourceHost;
+    private String dependenciesJson;
     private LocalDateTime scheduleTime; //quartz fire time, includes missing fire time
     private LocalDateTime pendingTime; //time of submit to task scheduler
     private LocalDateTime waitingTime; //time of submit to task dispatcher
@@ -51,6 +58,7 @@ public class SchedulerTask {
     public SchedulerTask updateIgnoreNull(SchedulerTask schedulerTask) {
         if (schedulerTask.getId() != null) this.id = schedulerTask.getId();
         if (schedulerTask.getJobId() != null) this.jobId = schedulerTask.getJobId();
+        if (schedulerTask.getTaskName() != null) this.taskName = schedulerTask.getTaskName();
         if (schedulerTask.getTaskState() != null) this.taskState = schedulerTask.getTaskState();
         if (schedulerTask.getOssPath() != null) this.ossPath = schedulerTask.getOssPath();
         if (schedulerTask.getWorkerGroups() != null) this.workerGroups = schedulerTask.getWorkerGroups();
@@ -63,6 +71,7 @@ public class SchedulerTask {
         if (schedulerTask.getRetryInterval() != null) this.retryInterval = schedulerTask.getRetryInterval();
         if (schedulerTask.getExecutionTimeout() != null) this.executionTimeout = schedulerTask.getExecutionTimeout();
         if (schedulerTask.getPid() != null) this.pid = schedulerTask.getPid();
+        if (schedulerTask.getDagId() != null) this.pid = schedulerTask.getDagId();
         if (schedulerTask.getApplicationId() != null) this.applicationId = schedulerTask.getApplicationId();
         if (schedulerTask.getElapseTime() != null) this.elapseTime = schedulerTask.getElapseTime();
         if (schedulerTask.getTaskTriggerType() != null) this.taskTriggerType = schedulerTask.getTaskTriggerType();
@@ -70,6 +79,10 @@ public class SchedulerTask {
         if (schedulerTask.getIsSelfDependent() != null) this.isSelfDependent = schedulerTask.getIsSelfDependent();
         if (schedulerTask.getJobPriority() != null) this.jobPriority = schedulerTask.getJobPriority();
         if (schedulerTask.getScheduleCron() != null) this.scheduleCron = schedulerTask.getScheduleCron();
+        if (schedulerTask.getOffsetMs() != null) this.offsetMs = schedulerTask.getOffsetMs();
+        if (schedulerTask.getParallelism() != null) this.parallelism = schedulerTask.getParallelism();
+        if (schedulerTask.getSourceHost() != null) this.sourceHost = schedulerTask.getSourceHost();
+        if (schedulerTask.getDependenciesJson() != null) this.dependenciesJson = schedulerTask.getDependenciesJson();
         if (schedulerTask.getScheduleTime() != null) this.scheduleTime = schedulerTask.getScheduleTime();
         if (schedulerTask.getPendingTime() != null) this.pendingTime = schedulerTask.getPendingTime();
         if (schedulerTask.getWaitingTime() != null) this.waitingTime = schedulerTask.getWaitingTime();
@@ -83,9 +96,17 @@ public class SchedulerTask {
     }
 
     public List<String> getListOfWorkerGroups() {
-        if (this.getWorkerGroups() == null)
-            return null;
+        if (this.getWorkerGroups() == null || this.getWorkerGroups().length() == 0)
+            return ImmutableList.of();
 
         return on(",").splitToList(this.getWorkerGroups());
+    }
+
+    public String getStartTimeStr() {
+        return this.startTime == null ? "" : this.startTime.toString();
+    }
+
+    public String getEndTimeStr() {
+        return this.endTime == null ? "" : this.endTime.toString();
     }
 }

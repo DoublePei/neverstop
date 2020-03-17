@@ -1,33 +1,38 @@
 package com.ns.net;
 
+import com.ns.net.manager.QuartzScheduler;
 import com.ns.net.manager.ZKElection;
 import com.ns.net.manager.strategy.LeaderElectable;
+import com.ns.net.manager.strategy.Service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.Lifecycle;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.google.common.collect.Lists.reverse;
 import static java.lang.Runtime.getRuntime;
 import static java.util.Arrays.asList;
-import static com.google.common.collect.Lists.reverse;
 
 /**
  * @author jiangpeipei
  */
 @Slf4j
-@SpringBootApplication(scanBasePackages = {"com.ns.net"})
+@SpringBootApplication(exclude= {DataSourceAutoConfiguration.class})
 public class SchedulerMasterApplication implements LeaderElectable {
 
     @Autowired
     private ZKElection zkElection;
 
-    private List<Lifecycle> services = new ArrayList<>();
+    @Autowired
+    private QuartzScheduler quartzScheduler;
+
+    private List<Service> services = new ArrayList<>();
     private static ConfigurableApplicationContext ctx;
 
     public static void main(String[] args) {
@@ -40,7 +45,8 @@ public class SchedulerMasterApplication implements LeaderElectable {
     @PostConstruct
     public void start() {
         zkElection.register(this);
-        asList(zkElection).forEach(service -> {
+        asList(zkElection
+        ,quartzScheduler).forEach(service -> {
             services.add(service);
             try {
                 service.start();
