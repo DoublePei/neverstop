@@ -4,7 +4,7 @@ import com.ns.net.common.model.ZkMaster;
 import com.ns.net.common.util.CuratorUtils;
 import com.ns.net.common.util.MetricsUtils;
 import com.ns.net.manager.strategy.LeaderElectable;
-import com.ns.net.manager.strategy.Service;
+import com.ns.net.scheduler.Scheduler;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.leader.LeaderLatch;
@@ -24,7 +24,7 @@ import static org.apache.curator.framework.imps.CuratorFrameworkState.STOPPED;
 
 @Slf4j
 @Component
-public class ZKElection implements LeaderLatchListener, Service, ConnectionStateListener {
+public class ZKElection implements LeaderLatchListener, Scheduler, ConnectionStateListener {
 
     @Resource
     private CuratorFramework framework;

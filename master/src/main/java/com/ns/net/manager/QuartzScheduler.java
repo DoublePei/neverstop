@@ -2,7 +2,6 @@ package com.ns.net.manager;
 
 import com.ns.net.common.model.bo.SchedulerJobBo;
 import com.ns.net.config.QuartzConfig;
-import com.ns.net.manager.strategy.Service;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.Job;
 import org.quartz.Scheduler;
@@ -18,7 +17,7 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-public class QuartzScheduler implements Service {
+public class QuartzScheduler implements com.ns.net.scheduler.Scheduler {
 
     /**
      * 启动时初始化一个scheduler

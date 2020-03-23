@@ -1,9 +1,11 @@
 package com.ns.net;
 
 import com.ns.net.manager.QuartzScheduler;
+import com.ns.net.manager.TaskDispatch;
+import com.ns.net.manager.TaskScheduler;
 import com.ns.net.manager.ZKElection;
 import com.ns.net.manager.strategy.LeaderElectable;
-import com.ns.net.manager.strategy.Service;
+import com.ns.net.scheduler.Scheduler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
@@ -32,7 +34,13 @@ public class SchedulerMasterApplication implements LeaderElectable {
     @Autowired
     private QuartzScheduler quartzScheduler;
 
-    private List<Service> services = new ArrayList<>();
+    @Autowired
+    private TaskDispatch taskDispatch;
+
+    @Autowired
+    private TaskScheduler taskScheduler;
+
+    private List<Scheduler> services = new ArrayList<>();
     private static ConfigurableApplicationContext ctx;
 
     public static void main(String[] args) {
@@ -46,7 +54,9 @@ public class SchedulerMasterApplication implements LeaderElectable {
     public void start() {
         zkElection.register(this);
         asList(zkElection
-        ,quartzScheduler).forEach(service -> {
+        ,quartzScheduler
+        ,taskScheduler
+        ,taskDispatch).forEach(service -> {
             services.add(service);
             try {
                 service.start();

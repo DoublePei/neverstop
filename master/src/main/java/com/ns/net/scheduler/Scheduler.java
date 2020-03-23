@@ -1,8 +1,9 @@
-package com.ns.net.manager.strategy;
+package com.ns.net.scheduler;
 
-public interface Service {
+public interface Scheduler {
 
     void start() throws Exception;
 
     void stop() throws Exception;
+
 }

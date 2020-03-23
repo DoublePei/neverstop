@@ -38,6 +38,7 @@ public class SchedulerJobBo implements Serializable {
     private List<String> alertUsers;
     private List<Long> alertTypes;
     private String scheduleCron;
+    private Long offsetMs;
     private Boolean isSelfDependent;
     private JobCycle jobCycle;
     private Integer maxRetryTimes;
