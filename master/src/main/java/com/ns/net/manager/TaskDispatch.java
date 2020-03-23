@@ -1,6 +1,7 @@
 package com.ns.net.manager;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.ns.net.common.grpc.RpcClient;
 import com.ns.net.common.model.bo.SchedulerTaskBo;
 import com.ns.net.scheduler.SchedulerDispatch;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +30,7 @@ public class TaskDispatch implements SchedulerDispatch {
     @Override
     public SchedulerTaskBo submit(SchedulerTaskBo task) {
         log.info("send dispatch to worker ");
-        threadPool.execute(new TaskDispatchThread());
+        threadPool.execute(new TaskDispatchThread(task));
         return task;
     }
 
@@ -61,9 +62,17 @@ public class TaskDispatch implements SchedulerDispatch {
 
     private class TaskDispatchThread implements Runnable {
 
+        private SchedulerTaskBo task;
+
+        public TaskDispatchThread(SchedulerTaskBo task) {
+            this.task = task;
+        }
+
         @Override
         public void run() {
-            log.info("哈哈哈哈");
+            final RpcClient rpcClient = RpcClient.create("127.0.0.1", 8090);
+            rpcClient.submitTask(task.toRpcTask());
+            return;
         }
     }
 

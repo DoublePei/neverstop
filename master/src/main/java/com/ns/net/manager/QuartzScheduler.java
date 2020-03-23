@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-public class QuartzScheduler implements com.ns.net.scheduler.Scheduler {
+public class QuartzScheduler implements com.ns.net.common.model.interfaces.Scheduler {
 
     /**
      * 启动时初始化一个scheduler

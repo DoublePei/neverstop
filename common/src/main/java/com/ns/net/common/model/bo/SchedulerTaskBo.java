@@ -1,6 +1,7 @@
 package com.ns.net.common.model.bo;
 
 
+import com.ns.net.common.grpc.RpcTask;
 import com.ns.net.common.model.enums.JobPriority;
 import com.ns.net.common.model.enums.JobType;
 import com.ns.net.common.model.enums.TaskState;
@@ -17,9 +18,11 @@ import java.util.Set;
 import static com.google.common.collect.ComparisonChain.start;
 import static com.google.common.collect.Ordering.natural;
 import static com.ns.net.common.util.CronUtils.preScheduleTimeOfSomeTime;
+import static com.ns.net.common.util.CronUtils.previousScheduleTimeOf;
+import static com.ns.net.common.util.Dates.protoTimestamp;
 import static java.time.LocalDateTime.now;
+import static java.time.temporal.ChronoUnit.MILLIS;
 import static java.util.Optional.empty;
-
 @Data
 @Accessors(chain = true)
 public class SchedulerTaskBo implements Comparable<SchedulerTaskBo> {
@@ -79,11 +82,43 @@ public class SchedulerTaskBo implements Comparable<SchedulerTaskBo> {
                 .setOffsetMs(schedulerJobBo.getOffsetMs());
     }
 
+    public RpcTask toRpcTask() {
+        RpcTask.Builder builder = RpcTask.newBuilder();
+        if (this.workerHost != null) builder.setWorkerHost(this.workerHost);
+        if (this.executionTimeout != null) builder.setExecutionTimeout(this.executionTimeout);
+        if (this.id != null) builder.setId(this.id);
+        if (this.id != null) builder.setJobId(this.jobId);
+        if (this.retryInterval != null) builder.setRetryInterval(this.retryInterval);
+        if (this.scheduleTime != null) builder.setScheduleTime(protoTimestamp(scheduleTime));
+        if (this.calculationTime != null) {
+            builder.setCalculationTime(protoTimestamp(this.calculationTime));
+        } else if (this.scheduleCron != null && this.scheduleTime != null) {
+            builder.setCalculationTime(protoTimestamp(computeCalDate()));
+        } else if (this.scheduleCron == null) { //job hasn't been scheduled but run manually
+            builder.setCalculationTime(protoTimestamp(now()));
+        }
+        if (this.startTime != null) builder.setStartTime(protoTimestamp(this.startTime));
+        if (this.endTime != null) builder.setEndTime(protoTimestamp(this.endTime));
+        if (this.retryTimes != null) builder.setRetryTimes(retryTimes);
+        if (this.taskState != null) builder.setState(taskState.getCode());
+        if (this.workerPort != null) builder.setWorkerPort(workerPort);
+        if (this.jobType != null) builder.setJobType(jobType.getCode());
+        if (this.ossPath != null) builder.setOssPath(ossPath);
+        return builder.build();
+    }
+
     @Override
     public int compareTo(SchedulerTaskBo that) {
         return start().compare(this.jobPriority, that.jobPriority, natural().reverse())
                 .compare(this.penalty, that.penalty)
                 .compare(this.scheduleTime, that.scheduleTime, natural().nullsFirst())
                 .result();
+    }
+    private LocalDateTime computeCalDate() {
+        if (this.offsetMs == null || this.offsetMs == 0) {
+            return previousScheduleTimeOf(this.scheduleCron, this.scheduleTime);
+        }
+
+        return this.scheduleTime.plus(this.offsetMs, MILLIS);
     }
 }

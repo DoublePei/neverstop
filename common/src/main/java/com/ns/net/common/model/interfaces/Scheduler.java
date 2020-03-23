@@ -1,4 +1,4 @@
-package com.ns.net.scheduler;
+package com.ns.net.common.model.interfaces;
 
 public interface Scheduler {
 

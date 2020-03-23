@@ -1,11 +1,12 @@
 package com.ns.net;
 
+import com.ns.net.grpc.MasterGrpcService;
 import com.ns.net.manager.QuartzScheduler;
 import com.ns.net.manager.TaskDispatch;
 import com.ns.net.manager.TaskScheduler;
 import com.ns.net.manager.ZKElection;
 import com.ns.net.manager.strategy.LeaderElectable;
-import com.ns.net.scheduler.Scheduler;
+import com.ns.net.common.model.interfaces.Scheduler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
@@ -40,6 +41,9 @@ public class SchedulerMasterApplication implements LeaderElectable {
     @Autowired
     private TaskScheduler taskScheduler;
 
+    @Autowired
+    private MasterGrpcService masterGrpcService;
+
     private List<Scheduler> services = new ArrayList<>();
     private static ConfigurableApplicationContext ctx;
 
@@ -56,7 +60,8 @@ public class SchedulerMasterApplication implements LeaderElectable {
         asList(zkElection
         ,quartzScheduler
         ,taskScheduler
-        ,taskDispatch).forEach(service -> {
+        ,taskDispatch
+        ,masterGrpcService).forEach(service -> {
             services.add(service);
             try {
                 service.start();
