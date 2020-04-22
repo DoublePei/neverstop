@@ -12,6 +12,9 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import static com.ns.net.common.model.enums.TaskState.PENDING;
+import static java.time.LocalDateTime.now;
+
 /**
  * 主要是进行依赖的检测,如果依赖全部符合，则进行分发到下一层进行机器的检测
  */
@@ -23,7 +26,10 @@ public class TaskScheduler implements SchedulerDispatch {
     private Integer threadCount;
 
     private ThreadPoolExecutor threadPool;
-
+    @Autowired
+    private SchedulerDao schedulerDao;
+    @Autowired
+    private JobStateStore jobStateStore;
     @Autowired
     private TaskDispatch taskDispatch;
 
@@ -35,9 +41,11 @@ public class TaskScheduler implements SchedulerDispatch {
      */
     @Override
     public SchedulerTaskBo submit(SchedulerTaskBo task) {
-        //首先更新数据库状态为pending
-        //然后分发任务
+        SchedulerTaskBo taskUpdated = schedulerDao.saveTask(task.setTaskState(PENDING)
+                .setPendingTime(now()));
+        taskUpdated.setSkipDependencies(task.getSkipDependencies());
         threadPool.execute(new TaskSchedulerThread(task));
+//        jobStateStore.removeTaskSuccessRecord(taskUpdated);
         //从jobStateStore移除历史任务
         return task;
     }

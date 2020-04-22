@@ -1,11 +1,13 @@
 package com.ns.net.common.model.bo;
 
 
+import com.google.common.base.Splitter;
 import com.ns.net.common.grpc.RpcTask;
 import com.ns.net.common.model.enums.JobPriority;
 import com.ns.net.common.model.enums.JobType;
 import com.ns.net.common.model.enums.TaskState;
 import com.ns.net.common.model.enums.TaskTriggerType;
+import com.ns.net.common.model.mapper.SchedulerTask;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -15,6 +17,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import static com.google.common.base.Joiner.on;
 import static com.google.common.collect.ComparisonChain.start;
 import static com.google.common.collect.Ordering.natural;
 import static com.ns.net.common.util.CronUtils.preScheduleTimeOfSomeTime;
@@ -23,6 +26,9 @@ import static com.ns.net.common.util.Dates.protoTimestamp;
 import static java.time.LocalDateTime.now;
 import static java.time.temporal.ChronoUnit.MILLIS;
 import static java.util.Optional.empty;
+import static org.apache.commons.lang3.BooleanUtils.toBoolean;
+import static org.apache.commons.lang3.BooleanUtils.toInteger;
+
 @Data
 @Accessors(chain = true)
 public class SchedulerTaskBo implements Comparable<SchedulerTaskBo> {
@@ -120,5 +126,107 @@ public class SchedulerTaskBo implements Comparable<SchedulerTaskBo> {
         }
 
         return this.scheduleTime.plus(this.offsetMs, MILLIS);
+    }
+
+    public SchedulerTask toSchedulerTask() {
+        return new SchedulerTask().setId(id)
+                .setJobId(this.getJobId())
+                .setTaskName(this.getTaskName())
+                .setTaskState(this.getTaskStateCode())
+                .setOssPath(this.getOssPath())
+                .setWorkerGroups(this.workerGroupsToString())
+                .setWorkerHost(this.getWorkerHost())
+                .setWorkerPort(this.getWorkerPort())
+                .setRetryInterval(this.getRetryInterval())
+                .setCreatorName(this.getCreatorName())
+                .setCreatorEmail(this.getCreatorEmail())
+                .setMaxRetryTimes(this.getMaxRetryTimes())
+                .setExecutionTimeout(this.getExecutionTimeout())
+                .setPid(this.getPid())
+                .setDagId(this.getDagId())
+                .setApplicationId(this.applicationIdsToString())
+                .setRetryTimes(this.getRetryTimes())
+                .setTaskTriggerType(this.getTaskTriggerTypeCode())
+                .setJobPriority(this.jobPriority == null ? null : this.jobPriority.getPriority())
+                .setJobType(this.getJobTypeCode())
+                .setIsSelfDependent(getIsSelfDependentValue())
+                .setScheduleCron(this.getScheduleCron())
+                .setOffsetMs(this.getOffsetMs())
+                .setParallelism(this.getParallelism())
+                .setSourceHost(this.getSourceHost())
+                .setDependenciesJson(this.taskDependenciesJson)
+                .setScheduleTime(this.getScheduleTime())
+                .setPendingTime(this.getPendingTime())
+                .setWaitingTime(this.getWaitingTime())
+                .setDispatchedTime(this.getDispatchedTime())
+                .setStartTime(this.getStartTime())
+                .setEndTime(this.getEndTime())
+                .setElapseTime(this.getElapseTime())
+                .setCreateTime(this.getCreateTime())
+                .setUpdateTime(this.getUpdateTime());
+    }
+    public Integer getTaskStateCode() {
+        return this.taskState == null ? null : taskState.getCode();
+    }
+    private String workerGroupsToString() {
+        return this.getWorkerGroups() == null ? null : on(",").join(this.getWorkerGroups());
+    }
+    public String applicationIdsToString() {
+        return this.getApplicationId() == null ? null : on(",").join(this.getApplicationId());
+    }
+    public Integer getTaskTriggerTypeCode() {
+        return this.taskTriggerType == null ? null : taskTriggerType.getCode();
+    }
+    public Integer getJobTypeCode() {
+        return this.jobType == null ? null : this.jobType.getCode();
+    }
+
+    public Integer getIsSelfDependentValue() {
+        return this.isSelfDependent == null ? null : toInteger(this.isSelfDependent);
+    }
+    public static SchedulerTaskBo from(SchedulerTask schedulerTask) {
+        return new SchedulerTaskBo().setId(schedulerTask.getId())
+                .setTaskName(schedulerTask.getTaskName())
+                .setCreatorName(schedulerTask.getCreatorName())
+                .setWorkerGroups(schedulerTask.getListOfWorkerGroups())
+                .setWorkerHost(schedulerTask.getWorkerHost())
+                .setWorkerPort(schedulerTask.getWorkerPort())
+                .setTaskState(schedulerTask.getTaskState() == null ? null
+                        : TaskState.of(schedulerTask.getTaskState()))
+                .setElapseTime(schedulerTask.getElapseTime())
+                .setParallelism(schedulerTask.getParallelism())
+                .setPid(schedulerTask.getPid())
+                .setDagId(schedulerTask.getDagId())
+                .setApplicationId(schedulerTask.getApplicationId() == null ? null
+                        : Splitter.on(",")
+                        .splitToList(schedulerTask.getApplicationId()))
+                .setJobId(schedulerTask.getJobId())
+                .setTaskTriggerType(schedulerTask.getTaskTriggerType() == null ? null
+                        : TaskTriggerType.of(schedulerTask.getTaskTriggerType()))
+                .setIsSelfDependent(schedulerTask.getIsSelfDependent() == null ? null
+                        : toBoolean(schedulerTask.getIsSelfDependent()))
+                .setScheduleCron(schedulerTask.getScheduleCron())
+                .setOffsetMs(schedulerTask.getOffsetMs())
+                .setSourceHost(schedulerTask.getSourceHost())
+                .setTaskDependenciesJson(schedulerTask.getDependenciesJson())
+                .setCreatorEmail(schedulerTask.getCreatorEmail())
+                .setCreatorName(schedulerTask.getCreatorName())
+                .setExecutionTimeout(schedulerTask.getExecutionTimeout())
+                .setRetryInterval(schedulerTask.getRetryInterval())
+                .setMaxRetryTimes(schedulerTask.getMaxRetryTimes())
+                .setRetryTimes(schedulerTask.getRetryTimes())
+                .setJobType(schedulerTask.getJobType() == null ? null
+                        : JobType.of(schedulerTask.getJobType()))
+                .setJobPriority(schedulerTask.getJobPriority() == null ? null
+                        : JobPriority.of(schedulerTask.getJobPriority()))
+                .setOssPath(schedulerTask.getOssPath())
+                .setScheduleTime(schedulerTask.getScheduleTime())
+                .setPendingTime(schedulerTask.getPendingTime())
+                .setWaitingTime(schedulerTask.getWaitingTime())
+                .setDispatchedTime(schedulerTask.getDispatchedTime())
+                .setStartTime(schedulerTask.getStartTime())
+                .setEndTime(schedulerTask.getEndTime())
+                .setCreateTime(schedulerTask.getCreateTime())
+                .setUpdateTime(schedulerTask.getUpdateTime());
     }
 }
