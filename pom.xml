@@ -102,7 +102,7 @@
             <dependency>
                 <groupId>com.google.protobuf</groupId>
                 <artifactId>protobuf-java</artifactId>
-                <version>3.8.0</version>
+                <version>3.16.1</version>
             </dependency>
             <dependency>
                 <groupId>com.101tec</groupId>
@@ -276,7 +276,7 @@
             <dependency>
                 <groupId>com.google.protobuf</groupId>
                 <artifactId>protobuf-java</artifactId>
-                <version>3.9.0</version>
+                <version>3.16.1</version>
             </dependency>
             <dependency>
                 <groupId>com.google.protobuf</groupId>
